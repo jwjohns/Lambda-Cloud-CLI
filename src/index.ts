@@ -31,7 +31,7 @@ const program = new Command();
 program
     .name('lambda-cli')
     .description('Lambda Cloud CLI — GPU instance management with interactive TUI')
-    .version('0.2.0');
+    .version('0.3.0');
 
 // --- types ---
 program
