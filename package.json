@@ -1,5 +1,5 @@
 {
-    "name": "@opendasm/lambda-cli",
+    "name": "lambda-cloud-cli",
     "version": "0.1.0",
     "description": "Lambda Cloud CLI tool with interactive TUI for GPU instance management",
     "type": "module",
