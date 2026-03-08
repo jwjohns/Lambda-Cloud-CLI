@@ -1,8 +1,21 @@
-# Lambda Cloud CLI
+<div align="center">
 
-A fast, interactive CLI tool with TUI for managing Lambda Cloud GPU instances.
+# ⚡ Lambda Cloud CLI
 
-Built with TypeScript, [Ink](https://github.com/vadimdemedes/ink) (React-based TUI), and [Commander](https://github.com/tj/commander.js).
+**A fast, interactive CLI + MCP server for managing Lambda Cloud GPU instances.**
+
+[![CI](https://github.com/jwjohns/Lambda-Cloud-CLI/actions/workflows/ci.yml/badge.svg)](https://github.com/jwjohns/Lambda-Cloud-CLI/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/lambda-cloud-cli.svg?color=cb3837)](https://www.npmjs.com/package/lambda-cloud-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-≥18-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-8B5CF6?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAyTDIgN2wxMCA1IDEwLTUtMTAtNXoiLz48cGF0aCBkPSJNMiAxN2wxMCA1IDEwLTUiLz48cGF0aCBkPSJNMiAxMmwxMCA1IDEwLTUiLz48L3N2Zz4=)](https://modelcontextprotocol.io)
+
+Built with [Ink](https://github.com/vadimdemedes/ink) (React TUI) · [Commander](https://github.com/tj/commander.js) · [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
+
+---
+
+</div>
 
 ## Install
 
