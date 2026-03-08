@@ -34,6 +34,7 @@ function PollView({ typeName, options }: { typeName: string; options: PollOption
     const [error, setError] = useState<string | null>(null);
     const [launched, setLaunched] = useState(false);
     const [launching, setLaunching] = useState(false);
+    const [secondsLeft, setSecondsLeft] = useState(options.interval);
 
     const poll = useCallback(async () => {
         try {
@@ -48,6 +49,7 @@ function PollView({ typeName, options }: { typeName: string; options: PollOption
             setTypes(matching);
             setLastCheck(new Date());
             setCheckCount(c => c + 1);
+            setSecondsLeft(options.interval);
             setError(null);
 
             // Check availability
@@ -94,6 +96,14 @@ function PollView({ typeName, options }: { typeName: string; options: PollOption
         return () => clearInterval(timer);
     }, [poll]);
 
+    // Countdown timer — ticks every second
+    useEffect(() => {
+        const tick = setInterval(() => {
+            setSecondsLeft(s => Math.max(0, s - 1));
+        }, 1000);
+        return () => clearInterval(tick);
+    }, []);
+
     if (launched) {
         return (
             <Box flexDirection="column">
@@ -105,7 +115,7 @@ function PollView({ typeName, options }: { typeName: string; options: PollOption
 
     const data = types.map(t => ({
         type: t.instance_type.name,
-        gpu: `${t.instance_type.specs.gpus}x ${t.instance_type.specs.gpu_description}`,
+        gpu: `${t.instance_type.specs?.gpus ?? 0}x ${t.instance_type.specs?.gpu_description ?? 'GPU'}`,
         price: formatPrice(t.instance_type.price_cents_per_hour),
         status: t.regions_with_capacity_available.length > 0 ? '🟢 AVAILABLE' : '🔴 Sold out',
         regions: t.regions_with_capacity_available.length > 0
@@ -139,7 +149,7 @@ function PollView({ typeName, options }: { typeName: string; options: PollOption
                 ) : (
                     <Text dimColor>
                         Checks: {checkCount} | Last: {lastCheck?.toLocaleTimeString() ?? '—'} |{' '}
-                        <Text color="green"><Spinner type="dots" /></Text> Next check in {options.interval}s
+                        <Text color="green"><Spinner type="dots" /></Text> Next check in {secondsLeft}s
                     </Text>
                 )}
             </Box>
