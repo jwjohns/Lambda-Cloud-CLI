@@ -14,6 +14,7 @@ const config = new Conf<LambdaConfig>({
         defaultRegion: { type: 'string', default: '' },
         defaultInstanceType: { type: 'string', default: 'gpu_1x_gh200' },
         sshPrivateKeyPath: { type: 'string', default: '' },
+        wandbApiKey: { type: 'string', default: '' },
     },
 });
 
@@ -24,6 +25,7 @@ export function getConfig(): LambdaConfig {
         defaultRegion: config.get('defaultRegion'),
         defaultInstanceType: config.get('defaultInstanceType'),
         sshPrivateKeyPath: config.get('sshPrivateKeyPath'),
+        wandbApiKey: config.get('wandbApiKey'),
     };
 }
 

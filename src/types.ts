@@ -82,4 +82,5 @@ export interface LambdaConfig {
     defaultRegion?: string;
     defaultInstanceType?: string;
     sshPrivateKeyPath?: string;
+    wandbApiKey?: string;
 }
