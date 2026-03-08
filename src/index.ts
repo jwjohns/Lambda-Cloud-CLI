@@ -24,6 +24,7 @@ import { runLaunch } from './commands/launch.js';
 import { runTerminate } from './commands/terminate.js';
 import { runSSH, runPush, runPull, runSetup } from './commands/remote.js';
 import { runConfigShow, runConfigSet } from './commands/config.js';
+import { startMcpServer } from './mcp.js';
 
 const program = new Command();
 
@@ -157,5 +158,13 @@ configCmd
 configCmd.action(() => {
     runConfigShow();
 });
+
+// --- mcp ---
+program
+    .command('mcp')
+    .description('Start MCP server for AI agent integration (stdio transport)')
+    .action(async () => {
+        await startMcpServer();
+    });
 
 program.parse();
