@@ -80,6 +80,7 @@ lambda terminate --all
 | `defaultRegion` | Preferred launch region | `us-east-3` |
 | `defaultInstanceType` | Default GPU type | `gpu_1x_gh200` |
 | `sshPrivateKeyPath` | Path to SSH private key | auto-detect |
+| `wandbApiKey` | Weights & Biases API key for training monitoring | — |
 
 ## MCP Server (AI Agent Integration)
 
