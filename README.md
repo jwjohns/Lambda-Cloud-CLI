@@ -68,6 +68,57 @@ lambda terminate --all
 | `defaultInstanceType` | Default GPU type | `gpu_1x_gh200` |
 | `sshPrivateKeyPath` | Path to SSH private key | auto-detect |
 
+## MCP Server (AI Agent Integration)
+
+Lambda Cloud CLI includes a built-in [MCP](https://modelcontextprotocol.io/) server so AI agents can manage GPU instances programmatically.
+
+### Setup for Claude Code / Cursor / Codex
+
+Add to your MCP config (`claude_desktop_config.json`, `.cursor/mcp.json`, etc.):
+
+```json
+{
+  "mcpServers": {
+    "lambda": {
+      "command": "lambda-cli",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Or via npx (no global install):
+
+```json
+{
+  "mcpServers": {
+    "lambda": {
+      "command": "npx",
+      "args": ["-y", "lambda-cloud-cli", "mcp"]
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `list_instance_types` | Browse GPU types with pricing and regional availability |
+| `check_availability` | Check if a specific GPU type is available now |
+| `list_instances` | List all running instances with IPs and status |
+| `launch_instance` | Launch a new GPU instance |
+| `terminate_instance` | Terminate instance(s) by ID |
+| `ssh_command` | Run shell commands on an instance via SSH |
+| `list_ssh_keys` | List SSH keys registered with Lambda |
+| `get_config` | View current CLI configuration |
+
+### What agents can do
+
+> "Launch a GH200, upload my training data, start the fine-tuning job, monitor it, pull the results, and terminate the instance."
+
+All autonomously, with full visibility into costs and availability.
+
 ## License
 
 MIT
