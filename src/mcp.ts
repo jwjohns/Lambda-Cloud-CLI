@@ -27,7 +27,7 @@ function getApi(): LambdaApi {
 export async function startMcpServer() {
     const server = new McpServer({
         name: 'lambda-cloud',
-        version: '0.1.0',
+        version: '0.2.0',
     });
 
     // ── list_instance_types ─────────────────────────────────────────────
