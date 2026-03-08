@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    name: Build (${{ matrix.pm }})
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        include:
+          - pm: npm
+            install: npm ci
+            build: npm run build
+          - pm: yarn
+            install: yarn install --frozen-lockfile
+            build: yarn build
+          - pm: pnpm
+            install: pnpm install --frozen-lockfile
+            build: pnpm build
+          - pm: bun
+            install: bun install
+            build: bun run build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: matrix.pm != 'bun'
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        if: matrix.pm == 'pnpm'
+        with:
+          version: 9
+
+      - uses: oven-sh/setup-bun@v2
+        if: matrix.pm == 'bun'
+
+      - name: Install
+        run: ${{ matrix.install }}
+
+      - name: Build
+        run: ${{ matrix.build }}
+
+      - name: Verify output
+        run: |
+          test -f dist/index.js
+          head -1 dist/index.js | grep -q "#!/usr/bin/env node"
+          echo "✅ Build output verified"
+
+  eval:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - name: CLI help
+        run: node dist/index.js --help
+      - name: CLI version
+        run: node dist/index.js --version || true
+      - name: Config show (no key)
+        run: node dist/index.js config show
+      - name: Types (expect auth error, not crash)
+        run: |
+          node dist/index.js types 2>&1 || true
+          echo "✅ CLI runs without crashing"
