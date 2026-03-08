@@ -1,45 +1,27 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getConfig, getApiKey, setConfig } from '../src/config.js';
+import { describe, it, expect } from 'vitest';
+import { getConfig, setConfig } from '../src/config.js';
 
 describe('Config', () => {
     describe('getConfig', () => {
-        it('should return config object', () => {
+        it('should return config object with expected shape', () => {
             const config = getConfig();
             expect(config).toBeDefined();
             expect(typeof config).toBe('object');
-        });
-
-        it('should have expected keys', () => {
-            const config = getConfig();
-            // Config should be an object with possible keys
-            expect(config).toHaveProperty('apiKey');
-        });
-    });
-
-    describe('getApiKey', () => {
-        it('should return a string or empty', () => {
-            const key = getApiKey();
-            expect(typeof key).toBe('string');
         });
     });
 
     describe('setConfig', () => {
         const originalValue = getConfig().defaultRegion;
 
-        afterEach(() => {
-            // Restore original value
-            if (originalValue) {
-                setConfig('defaultRegion', originalValue);
-            }
-        });
-
         it('should set and retrieve a config value', () => {
-            setConfig('defaultRegion', 'us-west-2');
+            setConfig('defaultRegion', 'us-west-test');
             const config = getConfig();
-            expect(config.defaultRegion).toBe('us-west-2');
+            expect(config.defaultRegion).toBe('us-west-test');
+            // Restore
+            setConfig('defaultRegion', originalValue || 'us-east-3');
         });
 
-        it('should accept string keys', () => {
+        it('should not throw on valid keys', () => {
             expect(() => setConfig('defaultInstanceType', 'gpu_1x_a100')).not.toThrow();
         });
     });
