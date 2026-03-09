@@ -71,6 +71,23 @@ lambda push <instance-id> ./data /home/ubuntu/data
 lambda terminate --all
 ```
 
+## Cost Tracking
+
+The CLI automatically tracks instance uptime and calculates running costs:
+
+- **On launch**: records timestamp and hourly rate locally
+- **On `lambda instances`**: shows Uptime and Cost columns + session total
+- **On `lambda terminate`**: shows final session cost per instance
+
+```
+$ lambda instances
+  Status      Name          IP              GPU                    Region       $/hr    Uptime     Cost
+  🟢 active   datagen-test  192.222.56.129  1x GH200 480GB        us-east-3   $1.99    5h 14m   $10.44
+  💰 Session total: $10.44 across 1 instance(s)
+```
+
+Cost data is stored locally in `~/.config/lambda-cli/cost-tracker.json`.
+
 ## Config Keys
 
 | Key | Description | Default |
