@@ -115,7 +115,7 @@ function PollView({ typeName, options }: { typeName: string; options: PollOption
 
     const data = types.map(t => ({
         type: t.instance_type.name,
-        gpu: `${t.instance_type.specs?.gpus ?? 0}x ${t.instance_type.specs?.gpu_description ?? 'GPU'}`,
+        gpu: `${t.instance_type.specs?.gpus ?? 0}x ${t.instance_type.gpu_description ?? t.instance_type.description ?? 'GPU'}`,
         price: formatPrice(t.instance_type.price_cents_per_hour),
         status: t.regions_with_capacity_available.length > 0 ? '🟢 AVAILABLE' : '🔴 Sold out',
         regions: t.regions_with_capacity_available.length > 0

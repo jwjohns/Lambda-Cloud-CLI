@@ -24,7 +24,7 @@ function TypesView({ filter }: { filter?: string }) {
                     const f = filter.toLowerCase();
                     filtered = data.filter(t =>
                         t.instance_type.name.toLowerCase().includes(f) ||
-                        (t.instance_type.specs?.gpu_description || '').toLowerCase().includes(f) ||
+                        (t.instance_type.gpu_description || t.instance_type.description || '').toLowerCase().includes(f) ||
                         (t.instance_type.description || '').toLowerCase().includes(f)
                     );
                 }
@@ -51,7 +51,7 @@ function TypesView({ filter }: { filter?: string }) {
 
     const data = types.map(t => ({
         name: t.instance_type.name,
-        gpu: `${t.instance_type.specs?.gpus || 0}x ${t.instance_type.specs?.gpu_description || 'Unknown'}`,
+        gpu: `${t.instance_type.specs?.gpus || 0}x ${t.instance_type.gpu_description || t.instance_type.description || 'Unknown'}`,
         vcpus: t.instance_type.specs?.vcpus || 0,
         ram: `${t.instance_type.specs?.memory_gib || 0} GB`,
         storage: `${t.instance_type.specs?.storage_gib || 0} GB`,

@@ -89,7 +89,7 @@ function TerminateView({ instanceId, force }: { instanceId?: string; force: bool
             <Text bold color="red">⚠️  Terminate {instances.length} instance(s)?</Text>
             {instances.map(i => (
                 <Text key={i.id}>
-                    {'  '}{i.id.slice(0, 12)} — {i.instance_type.specs.gpus}x {i.instance_type.specs.gpu_description} — {i.ip || '(no IP)'} — {formatPrice(i.instance_type.price_cents_per_hour)}
+                    {'  '}{i.id.slice(0, 12)} — {i.instance_type.specs.gpus}x {i.instance_type.gpu_description || i.instance_type.description} — {i.ip || '(no IP)'} — {formatPrice(i.instance_type.price_cents_per_hour)}
                 </Text>
             ))}
             <Box marginTop={1}>

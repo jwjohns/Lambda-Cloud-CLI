@@ -1,6 +1,6 @@
 {
     "name": "lambda-cloud-cli",
-    "version": "0.2.2",
+    "version": "0.3.0",
     "description": "Lambda Cloud CLI tool with interactive TUI and MCP server for GPU instance management",
     "license": "MIT",
     "repository": {

@@ -5,13 +5,13 @@
 export interface InstanceType {
     name: string;
     description: string;
+    gpu_description?: string;
     price_cents_per_hour: number;
     specs: {
         vcpus: number;
         memory_gib: number;
         storage_gib: number;
         gpus: number;
-        gpu_description: string;
     };
 }
 
