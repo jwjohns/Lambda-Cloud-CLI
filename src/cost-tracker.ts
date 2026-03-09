@@ -12,6 +12,7 @@ interface TrackedInstance {
     launchedAt: number; // Unix timestamp ms
     priceCentsPerHour: number;
     region: string;
+    approximate?: boolean; // true if launch time was auto-discovered (not exact)
 }
 
 interface CostTrackerState {
@@ -64,7 +65,7 @@ export function trackTerminate(instanceId: string): {
     store.set('instances', instances);
 
     return {
-        uptime: formatUptime(uptimeMs),
+        uptime: formatUptime(uptimeMs, tracked.approximate),
         cost: formatCost(costCents),
         costCents,
     };
@@ -85,23 +86,51 @@ export function getInstanceCost(instanceId: string): {
     const costCents = hours * tracked.priceCentsPerHour;
 
     return {
-        uptime: formatUptime(uptimeMs),
+        uptime: formatUptime(uptimeMs, tracked.approximate),
         cost: formatCost(costCents),
         launchedAt: tracked.launchedAt,
     };
 }
 
-/** Sync tracked instances with API data — remove any that no longer exist */
-export function syncTrackedInstances(activeIds: string[]): void {
+/** Instance info needed for auto-discovery */
+export interface InstanceInfo {
+    id: string;
+    name?: string | null;
+    instanceType: string;
+    priceCentsPerHour: number;
+    region: string;
+}
+
+/** Sync tracked instances with API data — auto-discover untracked, remove stale */
+export function syncTrackedInstances(activeInstances: InstanceInfo[]): void {
     const instances = store.get('instances');
-    const activeSet = new Set(activeIds);
+    const activeIds = new Set(activeInstances.map(i => i.id));
     let changed = false;
+
+    // Remove instances that are no longer active
     for (const id of Object.keys(instances)) {
-        if (!activeSet.has(id)) {
+        if (!activeIds.has(id)) {
             delete instances[id];
             changed = true;
         }
     }
+
+    // Auto-discover: track any active instances we don't know about
+    for (const inst of activeInstances) {
+        if (!instances[inst.id]) {
+            instances[inst.id] = {
+                instanceId: inst.id,
+                name: inst.name || undefined,
+                instanceType: inst.instanceType,
+                launchedAt: Date.now(),
+                priceCentsPerHour: inst.priceCentsPerHour,
+                region: inst.region,
+                approximate: true,
+            };
+            changed = true;
+        }
+    }
+
     if (changed) store.set('instances', instances);
 }
 
@@ -119,12 +148,13 @@ export function getTotalCost(): { total: string; count: number } {
     return { total: formatCost(totalCents), count };
 }
 
-function formatUptime(ms: number): string {
+function formatUptime(ms: number, approximate?: boolean): string {
     const totalMinutes = Math.floor(ms / 60000);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    if (hours === 0) return `${minutes}m`;
-    return `${hours}h ${minutes}m`;
+    const prefix = approximate ? '~' : '';
+    if (hours === 0) return `${prefix}${minutes}m`;
+    return `${prefix}${hours}h ${minutes}m`;
 }
 
 function formatCost(cents: number): string {

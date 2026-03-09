@@ -50,8 +50,14 @@ function InstancesView() {
         }
     };
 
-    // Sync tracker with actual running instances
-    syncTrackedInstances(instances.map(i => i.id));
+    // Sync tracker with actual running instances (auto-discovers untracked)
+    syncTrackedInstances(instances.map(i => ({
+        id: i.id,
+        name: i.name,
+        instanceType: i.instance_type.name,
+        priceCentsPerHour: i.instance_type.price_cents_per_hour,
+        region: i.region.name,
+    })));
 
     const data = instances.map(inst => {
         const cost = getInstanceCost(inst.id);
