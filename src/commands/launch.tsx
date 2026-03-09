@@ -7,6 +7,7 @@ import { Box, Text, render } from 'ink';
 import Spinner from 'ink-spinner';
 import { LambdaApi } from '../api.js';
 import { getApiKey, getConfig } from '../config.js';
+import { trackLaunch } from '../cost-tracker.js';
 
 interface LaunchOptions {
     region?: string;
@@ -46,7 +47,12 @@ function LaunchView({ typeName, options }: { typeName: string; options: LaunchOp
                     region = avail[0]!.name;
                 }
 
-                // 3. Launch
+                // 3. Look up price
+                const types = await api.listInstanceTypes();
+                const typeInfo = types.find(t => t.instance_type.name === typeName);
+                const priceCents = typeInfo?.instance_type.price_cents_per_hour ?? 0;
+
+                // 4. Launch
                 setStatus('launching');
                 const result = await api.launchInstance({
                     instance_type_name: typeName,
@@ -59,6 +65,9 @@ function LaunchView({ typeName, options }: { typeName: string; options: LaunchOp
                 const id = result.instance_ids[0]!;
                 setInstanceId(id);
                 setStatus('waiting');
+
+                // Track cost from launch time
+                trackLaunch(id, typeName, priceCents, region, options.name);
 
                 // 4. Wait for active
                 for (let i = 0; i < 60; i++) {

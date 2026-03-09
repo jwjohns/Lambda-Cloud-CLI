@@ -16,6 +16,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { LambdaApi } from './api.js';
 import { getApiKey, getConfig } from './config.js';
+import { getInstanceCost, trackLaunch, trackTerminate, syncTrackedInstances, getTotalCost } from './cost-tracker.js';
 
 
 function getApi(): LambdaApi {
@@ -93,16 +94,23 @@ export async function startMcpServer() {
         async () => {
             const api = getApi();
             const instances = await api.listInstances();
-            const result = instances.map(inst => ({
-                id: inst.id,
-                name: inst.name || '(unnamed)',
-                type: inst.instance_type?.name || 'unknown',
-                status: inst.status,
-                ip: inst.ip || null,
-                region: inst.region?.name || 'unknown',
-                ssh_keys: inst.ssh_key_names || [],
-            }));
-            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+            syncTrackedInstances(instances.map(i => i.id));
+            const result = instances.map(inst => {
+                const cost = getInstanceCost(inst.id);
+                return {
+                    id: inst.id,
+                    name: inst.name || '(unnamed)',
+                    type: inst.instance_type?.name || 'unknown',
+                    status: inst.status,
+                    ip: inst.ip || null,
+                    region: inst.region?.name || 'unknown',
+                    ssh_keys: inst.ssh_key_names || [],
+                    uptime: cost?.uptime || null,
+                    session_cost: cost?.cost || null,
+                };
+            });
+            const total = getTotalCost();
+            return { content: [{ type: 'text' as const, text: JSON.stringify({ instances: result, total_cost: total.total, tracked_count: total.count }, null, 2) }] };
         }
     );
 
@@ -127,6 +135,11 @@ export async function startMcpServer() {
                 return { content: [{ type: 'text' as const, text: 'Error: No SSH key specified. Set one with: lambda config set defaultSshKey YOUR_KEY' }] };
             }
 
+            // Look up price for cost tracking
+            const types = await api.listInstanceTypes();
+            const typeInfo = types.find(t => t.instance_type.name === instance_type);
+            const priceCents = typeInfo?.instance_type.price_cents_per_hour ?? 0;
+
             try {
                 const result = await api.launchInstance({
                     instance_type_name: instance_type,
@@ -136,12 +149,18 @@ export async function startMcpServer() {
                     file_system_names: filesystem ? [filesystem] : undefined,
                 });
 
+                // Track for cost monitoring
+                for (const id of result.instance_ids) {
+                    trackLaunch(id, instance_type, priceCents, launchRegion, name);
+                }
+
                 return {
                     content: [{
                         type: 'text' as const,
                         text: JSON.stringify({
                             launched: true,
                             instance_ids: result.instance_ids,
+                            price_per_hour: `$${(priceCents / 100).toFixed(2)}`,
                             message: `Instance launched in ${launchRegion}. Use list_instances to check when status is "active" and get the IP.`,
                         }, null, 2)
                     }]
@@ -162,13 +181,19 @@ export async function startMcpServer() {
         async ({ instance_ids }) => {
             const api = getApi();
             try {
+                // Get cost info before terminating
+                const costSummary = instance_ids.map(id => {
+                    const cost = trackTerminate(id);
+                    return { id, uptime: cost?.uptime || null, session_cost: cost?.cost || null };
+                });
+
                 await api.terminateInstances(instance_ids);
                 return {
                     content: [{
                         type: 'text' as const,
                         text: JSON.stringify({
                             terminated: true,
-                            instance_ids,
+                            instances: costSummary,
                             message: `${instance_ids.length} instance(s) terminated.`,
                         }, null, 2)
                     }]

@@ -8,6 +8,7 @@ import Spinner from 'ink-spinner';
 import { LambdaApi } from '../api.js';
 import { getApiKey } from '../config.js';
 import { formatPrice } from '../ui/StatusBadge.js';
+import { trackTerminate } from '../cost-tracker.js';
 import type { Instance } from '../types.js';
 
 function TerminateView({ instanceId, force }: { instanceId?: string; force: boolean }) {
@@ -68,9 +69,17 @@ function TerminateView({ instanceId, force }: { instanceId?: string; force: bool
         return (
             <Box flexDirection="column">
                 <Text color="green" bold>✅ Terminated {instances.length} instance(s)</Text>
-                {instances.map(i => (
-                    <Text key={i.id}>   {i.id.slice(0, 12)} ({i.name || i.instance_type.name})</Text>
-                ))}
+                {instances.map(i => {
+                    const costInfo = trackTerminate(i.id);
+                    return (
+                        <Box key={i.id} flexDirection="column">
+                            <Text>   {i.id.slice(0, 12)} ({i.name || i.instance_type.name})</Text>
+                            {costInfo && (
+                                <Text dimColor>   💰 Uptime: {costInfo.uptime} — Session cost: <Text color="yellow" bold>{costInfo.cost}</Text></Text>
+                            )}
+                        </Box>
+                    );
+                })}
             </Box>
         );
     }

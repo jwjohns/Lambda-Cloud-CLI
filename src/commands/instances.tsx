@@ -9,6 +9,7 @@ import { LambdaApi } from '../api.js';
 import { getApiKey } from '../config.js';
 import { Table } from '../ui/Table.js';
 import { formatPrice } from '../ui/StatusBadge.js';
+import { getInstanceCost, syncTrackedInstances, getTotalCost } from '../cost-tracker.js';
 import type { Instance } from '../types.js';
 
 function InstancesView() {
@@ -49,32 +50,51 @@ function InstancesView() {
         }
     };
 
-    const data = instances.map(inst => ({
-        status: `${statusIcon(inst.status)} ${inst.status}`,
-        name: inst.name || inst.id.slice(0, 8),
-        ip: inst.ip || '—',
-        gpu: `${inst.instance_type.specs.gpus}x ${inst.instance_type.specs.gpu_description}`,
-        region: inst.region.name,
-        price: formatPrice(inst.instance_type.price_cents_per_hour),
-        id: inst.id.slice(0, 12),
-        fs: inst.file_system_names.join(', ') || '—',
-    }));
+    // Sync tracker with actual running instances
+    syncTrackedInstances(instances.map(i => i.id));
+
+    const data = instances.map(inst => {
+        const cost = getInstanceCost(inst.id);
+        return {
+            status: `${statusIcon(inst.status)} ${inst.status}`,
+            name: inst.name || inst.id.slice(0, 8),
+            ip: inst.ip || '—',
+            gpu: `${inst.instance_type.specs.gpus}x ${inst.instance_type.specs.gpu_description}`,
+            region: inst.region.name,
+            price: formatPrice(inst.instance_type.price_cents_per_hour),
+            uptime: cost?.uptime || '—',
+            cost: cost?.cost || '—',
+            id: inst.id.slice(0, 12),
+        };
+    });
+
+    const total = getTotalCost();
 
     return (
-        <Table
-            title="Running Instances"
-            columns={[
-                { key: 'status', label: 'Status', width: 14 },
-                { key: 'name', label: 'Name', width: 14 },
-                { key: 'ip', label: 'IP', width: 18 },
-                { key: 'gpu', label: 'GPU', width: 22 },
-                { key: 'region', label: 'Region', width: 14 },
-                { key: 'price', label: 'Price', width: 10, align: 'right' },
-                { key: 'id', label: 'ID', width: 14 },
-                { key: 'fs', label: 'Filesystem', width: 14 },
-            ]}
-            data={data}
-        />
+        <Box flexDirection="column">
+            <Table
+                title="Running Instances"
+                columns={[
+                    { key: 'status', label: 'Status', width: 14 },
+                    { key: 'name', label: 'Name', width: 14 },
+                    { key: 'ip', label: 'IP', width: 18 },
+                    { key: 'gpu', label: 'GPU', width: 22 },
+                    { key: 'region', label: 'Region', width: 14 },
+                    { key: 'price', label: '$/hr', width: 8, align: 'right' },
+                    { key: 'uptime', label: 'Uptime', width: 10, align: 'right' },
+                    { key: 'cost', label: 'Cost', width: 10, align: 'right' },
+                    { key: 'id', label: 'ID', width: 14 },
+                ]}
+                data={data}
+            />
+            {total.count > 0 && (
+                <Box marginTop={1}>
+                    <Text dimColor>  💰 Session total: </Text>
+                    <Text bold color="yellow">{total.total}</Text>
+                    <Text dimColor> across {total.count} instance(s)</Text>
+                </Box>
+            )}
+        </Box>
     );
 }
 
